@@ -18,5 +18,5 @@ if __name__  == "__main__":
     url = "https://www.theblaze.com/news/tennessee-mom-carries-terminally-ill-baby-to-term"
     parsed_boxes = get_taboola_content(url)
     for box in parsed_boxes:
-        print(box.title)
-        print(box.sponsor)
+        print('Title: %s' % box.title)
+        print('Sponsor: %s' % box.sponsor)
