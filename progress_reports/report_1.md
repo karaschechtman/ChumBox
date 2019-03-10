@@ -1,6 +1,6 @@
 # February 24, 2019
 
-Created: Feb 22, 2019 6:22 PM
+Note: Shaine and I did not realize that progress reports should be completed separately, so we worked on this one together. Professor Schulzrinne told us it was fine to submit the same one for this week, but that in the future we should work on them separately (which we will).
 
 # Progress Report #1
 
