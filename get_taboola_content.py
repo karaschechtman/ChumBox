@@ -6,12 +6,37 @@ import re
 import requests
 import csv
 import time
+import signal
+from contextlib import contextmanager
+
+
+@contextmanager
+def timeout(time):
+    # Register a function to raise a TimeoutError on the signal.
+    signal.signal(signal.SIGALRM, raise_timeout)
+    # Schedule the signal to be sent after ``time``.
+    signal.alarm(time)
+
+    try:
+        yield
+    except TimeoutError:
+        pass
+    finally:
+        # Unregister the signal so it won't be triggered
+        # if the timeout is not reached.
+        signal.signal(signal.SIGALRM, signal.SIG_IGN)
+
+
+def raise_timeout(signum, frame):
+    raise TimeoutError
 
 CSV_FOLDER = 'websites/'
 DATA_FOLDER = 'data/'
 URL_IN_EXCEPTIONS = ['news']
-CAP = 10
 
+'''
+Create a regex representing the string of the article URl.
+'''
 def _get_regex_from_pattern(pattern):
     pattern = pattern.replace('///', '.*/')
     pattern = pattern.replace('4y','[0-9]{4}')
@@ -26,6 +51,7 @@ def _get_regex_from_pattern(pattern):
 '''
 Get the links of all articles on a website that fit a given
 pattern for URLs of news articles.
+Returns: list of article links if they are found; empty list otherwise.
 '''
 def get_article_links(site, stripped_url, pattern):
     links = []
@@ -51,10 +77,12 @@ def get_article_links(site, stripped_url, pattern):
 
 '''
 Get Taboola content from a page with Taboola advertisements.
+Returns: TaboolaBox objects if boxes are found; empty array otherwise.
 '''
 def get_taboola_content(driver, url):
     parsed_boxes = []
     try:
+        print('Scraping data from %s...' % url)
         driver.get(url)
         taboola_content = driver.find_elements_by_xpath("//div[starts-with(@id, 'internal_trc_')]")
         for taboola_row in taboola_content:
@@ -70,6 +98,7 @@ def get_taboola_content(driver, url):
 
 if __name__  == "__main__":
     driver = webdriver.Chrome() # create a webdriver.
+    driver.set_page_load_timeout(20)
 
     for filename in os.listdir(CSV_FOLDER):
         # Iterate through CSVs with data.
@@ -85,12 +114,12 @@ if __name__  == "__main__":
                             big_url = 'http://www.' + row[0]
                             if len(get_article_links(big_url, row[0], row[5])) == 0:
                                 print('Could not scrape data for %s' % row[0])
-                        # Scrape the Taboola ads for 10 articles.
+                        # Scrape the Taboola ads.
+                        article_links = list(set(article_links))
                         publisher = row[0]
                         if not os.path.isdir('data/%s' % publisher):
                             os.mkdir('data/%s' % publisher)
-                        if len(article_links) > CAP:
-                            article_links = article_links[0:CAP]
+
                         for link_end in article_links:
                             url = big_url + link_end
                             parsed_boxes = get_taboola_content(driver, url)
