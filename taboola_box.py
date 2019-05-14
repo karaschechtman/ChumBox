@@ -1,29 +1,26 @@
 class TaboolaBox(object):
-    def __init__(self, title, sponsor, publisher):
+    def __init__(self, title, sponsor, link, source_webpage): #webpage, image_url):
         self.title = title
         self.sponsor = sponsor
-        self.publisher = publisher
-        self.image_url = image_url
+        self.link = link
+        self.source_webpage = source_webpage
 
-    def write(self):
-        data = (self.publisher, self.title)
-        filename = '%s/%s.txt' % data
-        with open(filename, 'w') as file:
+    def write(self, publisher):
+        data = (publisher, hash(self.title))
+        filename = 'data/%s/%d.txt' % data
+        with open(filename, 'w+') as file:
             file.write('%s\n' % self.title)
             file.write('%s\n' % self.sponsor)
-            file.write('%s\n' % self.publisher)
+            file.write('%s\n' % self.link)
+            file.write('%s\n' % self.source_webpage)
 
+    @staticmethod
     def load(filename):
-        title = ''
-        sponsor = ''
-        publisher = ''
-        image_url = ''
-        
         with open(filename, 'r') as file:
-            file.readlines()
-            title = file[0]
-            sponsor = file[1]
-            publisher = file[2]
-            image_url = file[3]
+            lines = file.readlines()
+            title = lines[0].strip()
+            sponsor = lines[1].strip()
+            link = lines[2].strip()
+            source_webpage = lines[3].strip()
 
-        return TaboolaBox(title, sponsor, website, image_url)
+            return TaboolaBox(title, sponsor, link, source_webpage)
